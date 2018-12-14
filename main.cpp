@@ -1,3 +1,9 @@
+/*
+	Name: Jacob McGuire
+	File: main.cpp
+	Date: 12 / 13 / 18
+*/
+
 #include<iostream>
 #include<fstream>
 #include<string>

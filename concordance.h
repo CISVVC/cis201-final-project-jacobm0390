@@ -1,3 +1,9 @@
+/*
+	Name: Jacob McGuire
+	File: concordance.h
+	Date: 12 / 13 / 18
+*/
+
 #ifndef CONCORDANCE_H
 #ifndef INDEX_H
 #define INDEX_H

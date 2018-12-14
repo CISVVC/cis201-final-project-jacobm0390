@@ -1,3 +1,9 @@
+/*
+	Name: Jacob McGuire
+	File: concordance.cpp
+	Date: 12 / 13 / 18
+*/
+
 #include "concordance.h"
 #include <iomanip>
 #include <cctype>
