@@ -1,74 +1,118 @@
 #include "concordance.h"
+#include <iomanip>
+#include <cctype>
 
-Concordance::Concordance(std::string filename)
+Index::Index(std::ifstream& input)
 {
-    m_filename = filename;
+	std::vector<std::string> lines;
+	std::string line;
+
+	while (!input.eof())
+	{
+		std::getline(input, line); 
+		format(line);
+		lines.push_back(line);
+	}
+
+	std::vector<Word> buffer = get_words(lines);
+
+	for (int i = 0; i < buffer.size(); i++)
+	{
+		add_word(buffer[i]); 
+	}
 }
 
-void Concordance::parse()
+std::string Index::format(std::string& line)
 {
-    std::ifstream file(m_filename.c_str());
-    while(!file.eof())
-    {
-        std::string word = next_word(file);
+	std::string formatted_line;
 
-        // implement the rest of this function
-        // This is just to see the words as they are printed out.
-        // The word may have some puncuation attached to it, this
-        // will be ok for this example.
-        std::cout << word << std::endl;
-    }
+	for (int i = 0; i < line.size(); i++)
+	{
+		line[i] = tolower(line[i]);
+		if (!((line[i] >= 'a' && line[i] <= 'z') || line[i] == ' '))
+		{
+			line.erase(line.begin() + i);
+			i--; 
+		}
+		if ((line[i] >= 'a' && line[i] <= 'z') || line[i] == ' ')
+		{
+			formatted_line += line[i];
+		}
+	}
+
+	return formatted_line;
 }
 
-bool Concordance::is_whitespace(char c)
+std::vector<Word> Index::get_words(const std::vector<std::string>& lines)
 {
-  return (c == ' ' || c == '\n' ||  c == '\t');
+	std::vector<Word> words;
+	std::string current_line, current_word;
+	for (int line_count = 0; line_count < lines.size(); line_count++) // iterate through every line given
+	{
+		current_line = lines[line_count]; 
+		current_line += ' '; 
+		for (int pos = 0; pos < current_line.size(); pos++) 
+		{
+			if (!(is_whitespace(current_line[pos])))
+			{
+				current_word += current_line[pos];
+			}
+			if (current_word.size() != 0) 
+			{
+				if (is_whitespace(current_line[pos])) 
+				{
+					words.push_back(Word(current_word, line_count + 1));
+					current_word += current_line[pos]; 
+					current_word = ""; 
+				}
+			}
+		}
+	}
+	return words;
 }
 
-void Concordance::eat_whitespace(std::ifstream& input)
+bool Index::is_whitespace(const char c)
 {
-    for(;;)
-    {
-        char c;
-        input.get(c);
-        if(input.eof())
-            break;
-        if(!is_whitespace(c))
-        {
-            input.putback(c); // this will put the character back on the input stream
-            break;
-        }
-    }
+	return (c == ' ' || c == '\t' || c == '\n' || c == '\r');
 }
 
-std::string Concordance::next_word(std::ifstream& input)
+void Index::add_word(Word word)
 {
-    std::string word;
-    for(;;)
-    {
-        char c;
-        input.get(c);
-        if(input.eof())
-            break;
-        if(!is_whitespace(c))
-        {
-            word += c;
-        }
-        else
-        {
-            eat_whitespace(input);
-            break;
-        }
-    }
-    return word;
+	for (int i = 0; i < m_index.size(); i++)
+	{
+		if (word.get_word() == m_index[i].get_word())
+		{
+			int position = word.get_lines()[0]; 
+			m_index[i].add_word(position);
+			return; 
+		}
+	}
+	m_index.push_back(word); 
 }
 
-int Concordance::find_word(std::string word)
+std::ostream& Index::print(std::ostream& o)
 {
-    // search the Word vector, and return the index in the vector.
-}
+	const int FIRST_COLUMN = 16;
+	const int SECOND_COLUMN = 7; 
 
-void Concordance::print()
-{
-    // print out the concordance
+	o << std::setw(FIRST_COLUMN) << std::left << "Word";
+	o << std::setw(SECOND_COLUMN) << std::left << "Count";
+	o << "Line(s)";
+	o << '\n';
+	for (int i = 0; i < m_index.size(); i++)
+	{
+		o << std::setw(FIRST_COLUMN);
+		o << m_index[i].get_word();
+		o << std::setw(SECOND_COLUMN);
+		o << m_index[i].get_count();
+		for (int j = 0; j < m_index[i].get_lines().size(); j++)
+		{
+			o << m_index[i].get_lines()[j]; 
+			if (j != m_index[i].get_lines().size() - 1)
+			{
+				o << ", ";
+			}
+		}
+		o << '\n';
+	}
 }
